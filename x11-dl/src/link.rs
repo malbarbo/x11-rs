@@ -2,15 +2,17 @@
 // The X11 libraries are available under the MIT license.
 // These bindings are public domain.
 
-// With `--cfg no_dlopen`, nothing opens a library.
-#![cfg_attr(no_dlopen, allow(dead_code))]
-
+#[cfg(not(no_dlopen))]
 use std::ffi::{CStr, CString};
+#[cfg(not(no_dlopen))]
 use std::os::raw::{c_char, c_void};
+#[cfg(not(no_dlopen))]
 use std::path::Path;
 
+#[cfg(not(no_dlopen))]
 use super::error::{OpenError, OpenErrorKind};
 
+#[cfg(not(no_dlopen))]
 include!(concat!(env!("OUT_DIR"), "/config.rs"));
 
 //
@@ -98,10 +100,12 @@ macro_rules! x11_link {
 // DynamicLibrary
 //
 
+#[cfg(not(no_dlopen))]
 pub struct DynamicLibrary {
     handle: *mut c_void,
 }
 
+#[cfg(not(no_dlopen))]
 impl DynamicLibrary {
     pub fn open(name: &str) -> Result<DynamicLibrary, OpenError> {
         unsafe {
@@ -205,6 +209,7 @@ impl DynamicLibrary {
     }
 }
 
+#[cfg(not(no_dlopen))]
 impl Drop for DynamicLibrary {
   fn drop (&mut self) {
     unsafe {
@@ -213,5 +218,7 @@ impl Drop for DynamicLibrary {
   }
 }
 
+#[cfg(not(no_dlopen))]
 unsafe impl Send for DynamicLibrary {}
+#[cfg(not(no_dlopen))]
 unsafe impl Sync for DynamicLibrary {}
