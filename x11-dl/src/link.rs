@@ -2,6 +2,9 @@
 // The X11 libraries are available under the MIT license.
 // These bindings are public domain.
 
+// With `--cfg no_dlopen`, nothing opens a library.
+#![cfg_attr(no_dlopen, allow(dead_code))]
+
 use std::ffi::{CStr, CString};
 use std::os::raw::{c_char, c_void};
 use std::path::Path;
@@ -34,6 +37,30 @@ macro_rules! x11_link {
     unsafe impl Sync for $struct_name {}
 
     impl $struct_name {
+      // With `--cfg no_dlopen`, the struct holds the functions of a
+      // library linked into the binary, for a static binary that has no
+      // dlopen.
+      #[cfg(no_dlopen)]
+      #[allow(unused_unsafe)]
+      pub fn open () -> Result<$struct_name, $crate::error::OpenError> {
+        // The bindings declare the opaque types of C as empty enums.
+        #[allow(improper_ctypes)]
+        extern "C" {
+          $(fn $fn_name ($($param_name : $param_type),*) -> $ret_type;)*
+          $(fn $vfn_name ($($vparam_name : $vparam_type),+, ...) -> $vret_type;)*
+          $(static mut $var_name : $var_type;)*
+        }
+        unsafe {
+          Ok($struct_name {
+            _private: (),
+            $($fn_name: $fn_name,)*
+            $($vfn_name: $vfn_name,)*
+            $($var_name: ::std::ptr::addr_of_mut!($var_name),)*
+          })
+        }
+      }
+
+      #[cfg(not(no_dlopen))]
       pub fn open () -> Result<$struct_name, $crate::error::OpenError> {
         /// Cached function pointers and global variables for X11 libraries.
         static CACHED: once_cell::sync::OnceCell<($crate::link::DynamicLibrary, $struct_name)> = once_cell::sync::OnceCell::new();
