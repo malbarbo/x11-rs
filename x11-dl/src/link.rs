@@ -3,11 +3,11 @@
 // These bindings are public domain.
 
 #[cfg(not(no_dlopen))]
-use std::ffi::{CStr, CString};
-#[cfg(not(no_dlopen))]
-use std::os::raw::{c_char, c_void};
-#[cfg(not(no_dlopen))]
-use std::path::Path;
+use std::{
+    ffi::{CStr, CString},
+    os::raw::{c_char, c_void},
+    path::Path,
+};
 
 #[cfg(not(no_dlopen))]
 use super::error::{OpenError, OpenErrorKind};
